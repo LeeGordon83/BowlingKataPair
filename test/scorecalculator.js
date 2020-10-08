@@ -1,12 +1,19 @@
 const { expect } = require('chai')
 
+function getScore() {
+  return 0
+}
+
+
+
 describe('scorecalculator', () => {
-  it('', async () => {
+  it('all gutter balls returns 0', async () => {
     // Arrange
-
+      
     // Act
-
+    const score = getScore()
+    
     // Assert
-    expect(1).to.eql(1)
+    expect(score).to.eql(0)
   })
 })
