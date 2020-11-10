@@ -6,17 +6,25 @@ function getScore (pins) {
 
 function getScoreReduce () {
   let previousFrame = []
+  let strikeCount = 0
   return (count, frame) => {
     let frameCount = 0
-    if (isStrike(previousFrame)) {
-      frameCount = (frameTotal(frame) + 10) + (frameTotal(frame))
+    if (strikeCount > 0 && !isStrike(frame)) {
+      for (i = strikeCount; i > 0; i--) {
+        frameCount += (frameTotal(frame) + (i * 10)) 
+      }
+      frameCount += frameTotal(frame)
+      strikeCount = 0
     } else if (isSpare(previousFrame)) {
       frameCount = (frameTotal(frame)) + (frame[0])
+      strikeCount = 0
     } else {
       if (frame[0] !== 10) {
         frameCount = (frameTotal(frame))
+        strikeCount = 0
       } else {
         frameCount = 0
+        strikeCount++
       }
     }
     previousFrame = frame
@@ -24,7 +32,7 @@ function getScoreReduce () {
   }
 
   function isSpare (frame) {
-    return frame[0] + frame[1] === 10
+    return frame[0] !== 10 && frame[0] + frame[1] === 10
   }
 
   function isStrike (frame) {
@@ -152,8 +160,7 @@ describe('scorecalculator', () => {
     expect(score).to.eql(31)
   })
 
-  it.only('two consecutive strikes scored ', async () => {
-    debugger
+  it('two consecutive strikes scored ', async () => {
     // add consecutive strike counter into code
     // Arrange
     const pins = [
@@ -175,7 +182,29 @@ describe('scorecalculator', () => {
     // Assert
     expect(score).to.eql(45)
   })
-})
+
+  it.skip('three consecutive strikes scored ', async () => {
+    // add consecutive strike counter into code
+    // Arrange
+    const pins = [
+      [10, 0], // 30
+      [10, 0], // 20
+      [10, 0], // 15
+      [5, 0], // 5
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0]
+    ]
+
+    // Act
+    const score = getScore(pins)
+
+    // Assert
+    expect(score).to.eql(70)
+  })
 
 it.skip('two strikes scored followed by gutterball', async () => {
 
@@ -192,3 +221,5 @@ it.skip('strike scored last', async () => {
 it.skip('spare scored last', async () => {
 
 })
+})
+
