@@ -11,7 +11,8 @@ function getScoreReduce () {
     let frameCount = 0
     if (strikeCount > 0 && !isStrike(frame)) {
       for (i = strikeCount; i > 0; i--) {
-        frameCount += (frameTotal(frame) + (i * 10)) 
+        const thisFrameCount = (frameTotal(frame) + (i * 10))  
+        frameCount += thisFrameCount >= 30 ? 30 : thisFrameCount
       }
       frameCount += frameTotal(frame)
       strikeCount = 0
@@ -160,7 +161,7 @@ describe('scorecalculator', () => {
     expect(score).to.eql(31)
   })
 
-  it('two consecutive strikes scored ', async () => {
+  it('double scored ', async () => {
     // add consecutive strike counter into code
     // Arrange
     const pins = [
@@ -183,12 +184,12 @@ describe('scorecalculator', () => {
     expect(score).to.eql(45)
   })
 
-  it.skip('three consecutive strikes scored ', async () => {
+  it('turkey scored ', async () => {
     // add consecutive strike counter into code
     // Arrange
     const pins = [
       [10, 0], // 30
-      [10, 0], // 20
+      [10, 0], // 25
       [10, 0], // 15
       [5, 0], // 5
       [0, 0],
@@ -203,7 +204,30 @@ describe('scorecalculator', () => {
     const score = getScore(pins)
 
     // Assert
-    expect(score).to.eql(70)
+    expect(score).to.eql(75)
+  })
+
+  it('four bagger scored ', async () => {
+    // add consecutive strike counter into code
+    // Arrange
+    const pins = [
+      [10, 0], // 30
+      [10, 0], // 30
+      [10, 0], // 25
+      [10, 0], // 15
+      [5, 0],  // 5
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0]
+    ]
+
+    // Act
+    const score = getScore(pins)
+
+    // Assert
+    expect(score).to.eql(105)
   })
 
 it.skip('two strikes scored followed by gutterball', async () => {
