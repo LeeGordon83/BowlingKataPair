@@ -10,8 +10,8 @@ function getScoreReduce () {
   return (count, frame) => {
     let frameCount = 0
     if (strikeCount > 0 && !isStrike(frame)) {
-      for (i = strikeCount; i > 0; i--) {
-        const thisFrameCount = (frameTotal(frame) + (i * 10))  
+      for (let i = strikeCount; i > 0; i--) {
+        const thisFrameCount = (frameTotal(frame) + (i * 10))
         frameCount += thisFrameCount >= 30 ? 30 : thisFrameCount
       }
       frameCount += frameTotal(frame)
@@ -215,7 +215,7 @@ describe('scorecalculator', () => {
       [10, 0], // 30
       [10, 0], // 25
       [10, 0], // 15
-      [5, 0],  // 5
+      [5, 0], // 5
       [0, 0],
       [0, 0],
       [0, 0],
@@ -230,20 +230,59 @@ describe('scorecalculator', () => {
     expect(score).to.eql(105)
   })
 
-it.skip('two strikes scored followed by gutterball', async () => {
+  it('two strikes scored followed by double gutterball', async () => {
+    // add consecutive strike counter into code
+    // Arrange
+    const pins = [
+      [10, 0], // 20
+      [10, 0], // 10
+      [0, 0], // 0
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0]
+    ]
 
+    // Act
+    const score = getScore(pins)
+
+    // Assert
+    expect(score).to.eql(30)
+  })
+
+  it.skip('two strikes scored followed by single gutterball', async () => {
+    // Arrange
+    const pins = [
+      [10, 0], // 20
+      [10, 0], // 10
+      [0, 5], // 5
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0]
+    ]
+    // Act
+    const score = getScore(pins)
+
+    // Assert
+    expect(score).to.eql(40)
+  })
+
+  it.skip('two spares scored followed by gutterball', async () => {
+
+  })
+
+  it.skip('strike scored last', async () => {
+
+  })
+
+  it.skip('spare scored last', async () => {
+
+  })
 })
-
-it.skip('two spares scored followed by gutterball', async () => {
-
-})
-
-it.skip('strike scored last', async () => {
-
-})
-
-it.skip('spare scored last', async () => {
-
-})
-})
-
