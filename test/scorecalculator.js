@@ -51,19 +51,39 @@ function getScoresMap () {
   function isStrike (frame) {
     return frame[0] === 10
   }
+  function isSpare (frame) {
+    return frame[0] + frame[1] === 10
+  }
   function getNextFrame (array, index) {
     return array[index + 1]
   }
   return (frame, index, array) => {
     if (isStrike(frame)) {
       const nextFrame = getNextFrame(array, index)
-      if (nextFrame === undefined || isStrike(nextFrame)) {
+      const nextnextFrame = getNextFrame(array, index + 1)
+      if (nextFrame === undefined) {
         return undefined
+      } else if (isStrike(nextFrame)) {
+        if (nextnextFrame === undefined) {
+          return undefined
+        } else if (isStrike(nextnextFrame)) {
+          return 30
+        } else {
+          return 10 + 10 + nextnextFrame[0] + nextnextFrame[1]
+        }
       } else {
         return 10 + nextFrame[0] + nextFrame[1]
       }
+    } else if (isSpare(frame)) {
+      const nextFrame = getNextFrame(array, index)
+      if (nextFrame === undefined) {
+        return undefined
+      } else {
+        return 10 + nextFrame[0]
+      }
+    } else {
+      return frame[0] + frame[1]
     }
-    return frame[0] + frame[1]
   }
 }
 
@@ -148,6 +168,19 @@ describe('scorecalculator', () => {
     expect(score).to.eql([undefined, undefined])
   })
 
+  it('strike scored on the first frame results in score undefined', async () => {
+    // Arrange
+    const frames = [
+      [10, 0]
+    ]
+
+    // Act
+    const score = getFrameScores(frames)
+
+    // Assert
+    expect(score).to.eql([undefined])
+  })
+
   it('strike scored on the frist frame followed by 5 pins second frame results in correct score', async () => {
     // Arrange
     const frames = [
@@ -179,7 +212,7 @@ describe('scorecalculator', () => {
 
   it('strike scored should add on both scores in next frame to previous frame score', async () => {
     // Arrange
-    const pins = [
+    const frames = [
       [10, 0], // 13
       [1, 2], // 3
       [0, 0],
@@ -193,16 +226,16 @@ describe('scorecalculator', () => {
     ]
 
     // Act
-    const score = getScore(pins)
+    const score = getFrameScores(frames)
 
     // Assert
-    expect(score).to.eql(16)
+    expect(score).to.eql([13, 3, 0, 0, 0, 0, 0, 0, 0, 0])
   })
 
   it('spare scored should add on first score in next frame to previous frame score', async () => {
     // Arrange
-    const pins = [
-      [5, 5], // 1
+    const frames = [
+      [5, 5], // 11
       [1, 2], // 3
       [0, 0],
       [0, 0],
@@ -215,15 +248,15 @@ describe('scorecalculator', () => {
     ]
 
     // Act
-    const score = getScore(pins)
+    const score = getFrameScores(frames)
 
     // Assert
-    expect(score).to.eql(14)
+    expect(score).to.eql([11, 3, 0, 0, 0, 0, 0, 0, 0, 0])
   })
 
   it('two consecutive spares scored should add on first score next frame to previous frame score both times', async () => {
     // Arrange
-    const pins = [
+    const frames = [
       [5, 5], // 15
       [5, 5], // 13
       [3, 0], // 3
@@ -237,16 +270,15 @@ describe('scorecalculator', () => {
     ]
 
     // Act
-    const score = getScore(pins)
+    const score = getFrameScores(frames)
 
     // Assert
-    expect(score).to.eql(31)
+    expect(score).to.eql([15, 13, 3, 0, 0, 0, 0, 0, 0, 0])
   })
 
   it('double scored ', async () => {
-    // add consecutive strike counter into code
     // Arrange
-    const pins = [
+    const frames = [
       [10, 0], // 25
       [10, 0], // 15
       [5, 0], // 5
@@ -260,16 +292,16 @@ describe('scorecalculator', () => {
     ]
 
     // Act
-    const score = getScore(pins)
+    const score = getFrameScores(frames)
 
     // Assert
-    expect(score).to.eql(45)
+    expect(score).to.eql([25, 15, 5, 0, 0, 0, 0, 0, 0, 0])
   })
 
   it('turkey scored ', async () => {
     // add consecutive strike counter into code
     // Arrange
-    const pins = [
+    const frames = [
       [10, 0], // 30
       [10, 0], // 25
       [10, 0], // 15
@@ -283,16 +315,16 @@ describe('scorecalculator', () => {
     ]
 
     // Act
-    const score = getScore(pins)
+    const score = getFrameScores(frames)
 
     // Assert
-    expect(score).to.eql(75)
+    expect(score).to.eql([30, 25, 15, 5, 0, 0, 0, 0, 0, 0])
   })
 
   it('four bagger scored ', async () => {
     // add consecutive strike counter into code
     // Arrange
-    const pins = [
+    const frames = [
       [10, 0], // 30
       [10, 0], // 30
       [10, 0], // 25
@@ -306,16 +338,16 @@ describe('scorecalculator', () => {
     ]
 
     // Act
-    const score = getScore(pins)
+    const score = getFrameScores(frames)
 
     // Assert
-    expect(score).to.eql(105)
+    expect(score).to.eql([30, 30, 25, 15, 5, 0, 0, 0, 0, 0])
   })
 
   it('two strikes scored followed by double gutterball', async () => {
     // add consecutive strike counter into code
     // Arrange
-    const pins = [
+    const frames = [
       [10, 0], // 20
       [10, 0], // 10
       [0, 0], // 0
@@ -329,15 +361,15 @@ describe('scorecalculator', () => {
     ]
 
     // Act
-    const score = getScore(pins)
+    const score = getFrameScores(frames)
 
     // Assert
-    expect(score).to.eql(30)
+    expect(score).to.eql([20, 10, 0, 0, 0, 0, 0, 0, 0, 0])
   })
 
-  it.skip('two strikes scored followed by single gutterball', async () => {
+  it('two strikes scored followed by single gutterball', async () => {
     // Arrange
-    const pins = [
+    const frames = [
       [10, 0], // 20
       [10, 0], // 15
       [0, 5], // 5
@@ -350,14 +382,25 @@ describe('scorecalculator', () => {
       [0, 0]
     ]
     // Act
-    const score = getScore(pins)
+    const score = getFrameScores(frames)
 
     // Assert
-    expect(score).to.eql(40)
+    expect(score).to.eql([25, 15, 5, 0, 0, 0, 0, 0, 0, 0])
   })
 
-  it.skip('two spares scored followed by gutterball', async () => {
+  it('two spares scored followed by gutterball', async () => {
+    // Arrange
+    const frames = [
+      [5, 5], // 20
+      [5, 5], // 15
+      [0, 0] // 5
 
+    ]
+    // Act
+    const score = getFrameScores(frames)
+
+    // Assert
+    expect(score).to.eql([15, 10, 0])
   })
 
   it.skip('strike scored last', async () => {
