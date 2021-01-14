@@ -1,52 +1,5 @@
 const { expect } = require('chai')
 
-function getScore (pins) {
-  return pins.reduce(getScoreReduce(), 0)
-}
-
-function getScoreReduce () {
-  let previousFrame = []
-  let strikeCount = 0
-
-  return (count, frame, index, pins) => {
-    // console.log({ index, pins })
-    let frameCount = 0
-    if (strikeCount > 0 && !isStrike(frame)) {
-      for (let i = strikeCount; i > 0; i--) {
-        const thisFrameCount = (frameTotal(frame) + (i * 10))
-        frameCount += thisFrameCount >= 30 ? 30 : thisFrameCount
-      }
-      frameCount += frameTotal(frame)
-      strikeCount = 0
-    } else if (isSpare(previousFrame)) {
-      frameCount = (frameTotal(frame)) + (frame[0])
-      strikeCount = 0
-    } else {
-      if (frame[0] !== 10) {
-        frameCount = (frameTotal(frame))
-        strikeCount = 0
-      } else {
-        frameCount = 0
-        strikeCount++
-      }
-    }
-    previousFrame = frame
-    return count + frameCount
-  }
-
-  function isSpare (frame) {
-    return frame[0] !== 10 && frame[0] + frame[1] === 10
-  }
-
-  function isStrike (frame) {
-    return frame[0] === 10
-  }
-
-  function frameTotal (frame) {
-    return frame[0] + frame[1]
-  }
-}
-
 function getScoresMap () {
   function isStrike (frame) {
     return frame[0] === 10
@@ -57,7 +10,16 @@ function getScoresMap () {
   function getNextFrame (array, index) {
     return array[index + 1]
   }
+  function isLastFrame (index) {
+    return index === 9
+  }
+  function scoreFrame (frame) {
+    return frame.reduce((x, y) => x + y)
+  }
   return (frame, index, array) => {
+    if (isLastFrame(index)) {
+      return scoreFrame(frame)
+    }
     if (isStrike(frame)) {
       const nextFrame = getNextFrame(array, index)
       const nextnextFrame = getNextFrame(array, index + 1)
@@ -69,21 +31,21 @@ function getScoresMap () {
         } else if (isStrike(nextnextFrame)) {
           return 30
         } else {
-          return 10 + 10 + nextnextFrame[0] + nextnextFrame[1]
+          return 10 + 10 + scoreFrame(nextnextFrame)
         }
       } else {
-        return 10 + nextFrame[0] + nextFrame[1]
+        return 10 + scoreFrame(nextFrame)
       }
-    } else if (isSpare(frame)) {
+    }
+    if (isSpare(frame)) {
       const nextFrame = getNextFrame(array, index)
       if (nextFrame === undefined) {
         return undefined
       } else {
         return 10 + nextFrame[0]
       }
-    } else {
-      return frame[0] + frame[1]
     }
+    return scoreFrame(frame)
   }
 }
 
@@ -195,7 +157,7 @@ describe('scorecalculator', () => {
     expect(score).to.eql([15, 5])
   })
 
-  it.skip('strike scored on the third frame results in a current score', async () => {
+  it('strike scored on the third frame results in a current score', async () => {
     // Arrange
     const frames = [
       [10, 0],
@@ -403,11 +365,66 @@ describe('scorecalculator', () => {
     expect(score).to.eql([15, 10, 0])
   })
 
-  it.skip('strike scored last', async () => {
+  it('strike scored last', async () => {
+    // Arrange
+    const frames = [
+      [10, 0], // 20
+      [10, 0], // 15
+      [0, 5], // 5
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [10, 5, 3]
+    ]
+    // Act
+    const score = getFrameScores(frames)
 
+    // Assert
+    expect(score).to.eql([25, 15, 5, 0, 0, 0, 0, 0, 0, 18])
   })
 
-  it.skip('spare scored last', async () => {
+  it('spare scored last', async () => {
+    // Arrange
+    const frames = [
+      [10, 0], // 20
+      [10, 0], // 15
+      [0, 5], // 5
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [5, 5, 5]
+    ]
+    // Act
+    const score = getFrameScores(frames)
 
+    // Assert
+    expect(score).to.eql([25, 15, 5, 0, 0, 0, 0, 0, 0, 15])
+  })
+
+  it('three strikes in final frame are scored', async () => {
+    // Arrange
+    const frames = [
+      [10, 0], // 20
+      [10, 0], // 15
+      [0, 5], // 5
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [10, 10, 10]
+    ]
+    // Act
+    const score = getFrameScores(frames)
+
+    // Assert
+    expect(score).to.eql([25, 15, 5, 0, 0, 0, 0, 0, 0, 30])
   })
 })
