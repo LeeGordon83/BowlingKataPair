@@ -49,7 +49,22 @@ function getScoresMap () {
   }
 }
 
+function validateFrames (frames) {
+  if (frames.length > 10) {
+    throw Error('Frame length exceeds 10')
+  }
+  if (frames.length < 10) {
+    if (frames.some((f) => { return f.length > 2 })) {
+      throw Error('A maximum of two balls can scored for the first 9 frames')
+    }
+  } else if (frames[9][0] + frames[9][1] < 10 && frames[9].length > 2) {
+    throw Error('A maximum of two balls can be scored in the final frame total is less than 10')
+  }
+}
+
 function getFrameScores (frames) {
+  validateFrames(frames)
+
   return frames.map(getScoresMap())
 }
 
@@ -427,4 +442,63 @@ describe('scorecalculator', () => {
     // Assert
     expect(score).to.eql([25, 15, 5, 0, 0, 0, 0, 0, 0, 30])
   })
+})
+
+it('error if more than ten frames submitted', async () => {
+  // Arrange
+  const frames = [
+    [1, 0],
+    [1, 0],
+    [0, 5],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [5, 1],
+    [8, 0]
+  ]
+
+  // Act and Assert
+  expect(() => { getFrameScores(frames) }).to.throw('Frame length exceeds 10')
+})
+
+it('an empty frame returns empty result', async () => {
+  // Arrange
+  const frames = [
+
+  ]
+  // Act
+  const score = getFrameScores(frames)
+
+  // Assert
+  expect(score).to.eql([])
+})
+
+it('Maximum of 2 balls in first 9 frames', async () => {
+  // Arrange
+  const frames = [
+    [1, 1, 1]
+  ]
+  // Act and Assert
+  expect(() => { getFrameScores(frames) }).to.throw('A maximum of two balls can scored for the first 9 frames')
+})
+
+it('Maximum of 2 balls in final frame if 10 not scored', async () => {
+  // Arrange
+  const frames = [
+    [10, 0], // 20
+    [10, 0], // 15
+    [0, 5], // 5
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [5, 1, 8]
+  ]
+  // Act and Assert
+  expect(() => { getFrameScores(frames) }).to.throw('A maximum of two balls can be scored in the final frame total is less than 10')
 })
