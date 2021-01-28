@@ -56,6 +56,8 @@ function validateFrames (frames) {
   if (frames.length < 10) {
     if (frames.some((f) => { return f.length > 2 })) {
       throw Error('A maximum of two balls can scored for the first 9 frames')
+    } else if (frames.some((f) => { return f.length < 2 })) {
+      throw Error('Two balls must be thrown per frame')
     }
   } else if (frames[9][0] + frames[9][1] < 10 && frames[9].length > 2) {
     throw Error('A maximum of two balls can be scored in the final frame total is less than 10')
@@ -501,4 +503,13 @@ it('Maximum of 2 balls in final frame if 10 not scored', async () => {
   ]
   // Act and Assert
   expect(() => { getFrameScores(frames) }).to.throw('A maximum of two balls can be scored in the final frame total is less than 10')
+})
+
+it('Two balls are submitted for a frame', async () => {
+  // Arrange
+  const frames = [
+    [1]
+  ]
+  // Act and Assert
+  expect(() => { getFrameScores(frames) }).to.throw('Two balls must be thrown per frame')
 })
