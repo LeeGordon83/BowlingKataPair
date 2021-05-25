@@ -1,5 +1,5 @@
 {
-  "name": "bowlingscorecalculator",
+  "name": "@geordiefoo/bowlingscorecalculator",
   "version": "1.0.1",
   "description": "a bowling score calculator",
   "main": "index.js",
